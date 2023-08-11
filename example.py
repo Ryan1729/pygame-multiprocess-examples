@@ -1,3 +1,8 @@
+"""Example
+
+An example of sending commands from one process to another process, where the
+second process is running a pygame window.
+"""
 
 from multiprocessing import Process, Queue
 import os
@@ -43,20 +48,26 @@ def game_proc(q):
         try:
             payload = q.get(True, QUEUE_TIMEOUT_S)
         except queue.Empty:
-            # keep waiting for more input
+            # Keep waiting for more input
             pass
         except ValueError:
             # Queue was closed. All done.
             break
         else:
+            # Examine the payload and act accordingly
             if DEBUG_MODE:
                 print(f"payload was {payload}")
 
             if type(payload) == dict:
                 kind = payload[KIND]
+                # Check the KIND field to allow adding more commands easily in
+                # the future
                 if kind == NUM:
                     num = payload[NUM]
                     if type(num) == int:
+                        # Extract just the lower 3 bytes into separate colour
+                        # channels. Note that extra bits will be ignored, and
+                        # missing ones will default to 0
                         red = (num >> 16) & 0xFF
                         green = (num >> 8) & 0xFF
                         blue = num & 0xFF
@@ -82,7 +93,8 @@ def game_proc(q):
 
     pygame.quit()
 
-
+# This if makes it such that the contained code runs only if this file is run 
+# directly. So if the file is imported it won't run.
 if __name__ == "__main__":
     queue = Queue()
 
@@ -92,11 +104,11 @@ if __name__ == "__main__":
         p.start()
 
     while (1):
-        num_str = input("Enter RGB number: ")
+        num_str = input("Enter RGB number (q to quit): ")
         try:
             # 0 means try to guess the base
             num = int(num_str, 0)
-            print(f"typed {num}, {(hex(num).upper())}")
+            print(f"got {num}, AKA {(hex(num).upper())}")
             queue.put({KIND: NUM, NUM: num})
         except ValueError:
             if num_str.lower().startswith('q'):
