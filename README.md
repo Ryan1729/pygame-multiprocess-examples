@@ -1,6 +1,6 @@
 # pygame-multiprocess-examples
 
-Example(s) of using pygame in a separate process.
+Examples of using pygame in a separate process.
 
 ## Installing Dependencies
 
@@ -11,9 +11,14 @@ Short version is, install `pip` if needed, then in the folder with requirements.
 pip install -r requirements.txt
 ```
 
-## Running the Example(s)
+## Running the Examples
 
-The example(s) were tested by running them directly on the command line with `python`, like this:
+The examples were tested by running them directly on the command line with `python`, like this:
 ```
 python example.py
+```
+
+To run the larger example, make sure the assets folder contains a star.png file, and run:
+```
+python larger-example.py
 ```
