@@ -8,9 +8,7 @@ This exmaple also adds a second command,  asset loading, and sprite transformati
 
 from multiprocessing import Process, Queue
 import os
-import queue
-import random
-import time
+from typing import Any, Dict, Tuple
 
 DEBUG_MODE = False
 KIND = 'kind'
@@ -18,28 +16,13 @@ COLOUR = 'colour'
 ROTATE = 'rotate'
 ANGLE = 'angle'
 
-def game_proc(q):
+def game_proc(q: "Queue[Dict[Any, Any]]"):
     PROC_NAME = "game_proc"
     FPS = 60
     QUEUE_TIMEOUT_S = 8 / 1000 # 8 milliseconds, around half a 60 FPS frame
     ANGLE_CHANGE_PER_FRAME = 1.5
 
     asset_path = os.path.join(os.path.dirname(__file__), "assets")
-
-    def load_image(name):
-        path = os.path.join(asset_path, name)
-        if DEBUG_MODE:
-            print(f"loading {path}")
-        image = pygame.image.load(path)
-        image = pygame.Surface.convert_alpha(image)
-        return image
-
-    # See https://stackoverflow.com/a/54714144
-    def blitRotateCenter(surf, image, topleft, angle):
-        rotated_image = pygame.transform.rotate(image, angle)
-        new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
-
-        surf.blit(rotated_image, new_rect)
 
     if DEBUG_MODE:
         print(f"{PROC_NAME} started")
@@ -50,14 +33,29 @@ def game_proc(q):
         with contextlib.redirect_stdout(None):
             import pygame
 
+    def load_image(name: str):
+        path = os.path.join(asset_path, name)
+        if DEBUG_MODE:
+            print(f"loading {path}")
+        image = pygame.image.load(path)
+        image = pygame.Surface.convert_alpha(image)
+        return image
+
+    # See https://stackoverflow.com/a/54714144
+    def blitRotateCenter(surf: pygame.Surface, image: pygame.Surface, topleft: Tuple[float, float], angle: float):
+        rotated_image = pygame.transform.rotate(image, angle)
+        new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
+
+        surf.blit(rotated_image, new_rect)
+
     # pygame setup
     pygame.init()
-    screen = pygame.display.set_mode((1280, 720))
+    screen: pygame.Surface = pygame.display.set_mode((1280, 720))
     clock = pygame.time.Clock()
     running = True
 
     star_image = load_image("star.png")
-    star_image = pygame.transform.scale_by(star_image, (1/2, 1/2))
+    star_image: pygame.Surface = pygame.transform.scale_by(star_image, (1/2, 1/2))
 
     red = 255
     green = 0
@@ -145,7 +143,7 @@ def game_proc(q):
 # This if makes it such that the contained code runs only if this file is run 
 # directly. So if the file is imported it won't run.
 if __name__ == "__main__":
-    queue = Queue()
+    queue: "Queue[Dict[Any, Any]]" = Queue()
 
     processes = [Process(target=game_proc, args=(queue,))]
 

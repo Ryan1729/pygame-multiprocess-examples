@@ -5,10 +5,6 @@ second process is running a pygame window.
 """
 
 from multiprocessing import Process, Queue
-import os
-import queue
-import random
-import time
 
 from typing import Any, Dict
 
@@ -16,7 +12,7 @@ DEBUG_MODE = False
 KIND = 'kind'
 NUM = 'num'
 
-def game_proc(q: Queue[Dict[Any, Any]]):
+def game_proc(q: "Queue[Dict[Any, Any]]"):
     PROC_NAME = "game_proc"
     FPS = 60
     QUEUE_TIMEOUT_S = 8 / 1000 # 8 milliseconds, around half a 60 FPS frame
@@ -99,7 +95,7 @@ def game_proc(q: Queue[Dict[Any, Any]]):
 # This if makes it such that the contained code runs only if this file is run 
 # directly. So if the file is imported it won't run.
 if __name__ == "__main__":
-    queue = Queue()
+    queue: "Queue[Dict[Any, Any]]" = Queue()
 
     processes = [Process(target=game_proc, args=(queue,))]
 
