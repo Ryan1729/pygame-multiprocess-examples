@@ -73,47 +73,48 @@ def game_proc(q):
             if event.type == pygame.QUIT:
                 running = False
 
-        try:
-            payload = q.get(True, QUEUE_TIMEOUT_S)
-        except queue.Empty:
+        if q.empty():
             # Keep waiting for more input
             pass
-        except ValueError:
-            # Queue was closed. All done.
-            break
         else:
-            # Examine the payload and act accordingly
-            if DEBUG_MODE:
-                print(f"payload was {payload}")
-
-            if type(payload) == dict:
-                kind = payload[KIND]
-                # Check the KIND field to allow adding more commands easily in
-                # the future
-                if kind == COLOUR:
-                    colour = payload[COLOUR]
-                    if type(colour) == int:
-                        # Extract just the lower 3 bytes into separate colour
-                        # channels. Note that extra bits will be ignored, and
-                        # missing ones will default to 0
-                        red = (colour >> 16) & 0xFF
-                        green = (colour >> 8) & 0xFF
-                        blue = colour & 0xFF
-                        if DEBUG_MODE:
-                            print(f"(red, green, blue): {(red, green, blue)}")
-                    else:
-                        print(f"colour was {colour}?!")
-                elif kind == ROTATE:
-                    angle = payload[ANGLE]
-                    if type(angle) == int:
-                        target_angle += angle
-                    else:
-                        print(f"angle was {angle}?!")
-                else:
-                    print(f"kind was {kind}?!")
+            try:
+                payload = q.get(True, QUEUE_TIMEOUT_S)
+            except ValueError:
+                # Queue was closed. All done.
+                break
             else:
-                print(f"payload was {payload}?!")
-            
+                # Examine the payload and act accordingly
+                if DEBUG_MODE:
+                    print(f"payload was {payload}")
+
+                if type(payload) == dict:
+                    kind = payload[KIND]
+                    # Check the KIND field to allow adding more commands easily in
+                    # the future
+                    if kind == COLOUR:
+                        colour = payload[COLOUR]
+                        if type(colour) == int:
+                            # Extract just the lower 3 bytes into separate colour
+                            # channels. Note that extra bits will be ignored, and
+                            # missing ones will default to 0
+                            red = (colour >> 16) & 0xFF
+                            green = (colour >> 8) & 0xFF
+                            blue = colour & 0xFF
+                            if DEBUG_MODE:
+                                print(f"(red, green, blue): {(red, green, blue)}")
+                        else:
+                            print(f"colour was {colour}?!")
+                    elif kind == ROTATE:
+                        angle = payload[ANGLE]
+                        if type(angle) == int:
+                            target_angle += angle
+                        else:
+                            print(f"angle was {angle}?!")
+                    else:
+                        print(f"kind was {kind}?!")
+                else:
+                    print(f"payload was {payload}?!")
+                
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill((red, green, blue))
@@ -179,7 +180,7 @@ if __name__ == "__main__":
                 print(f"got {degrees}")
                 queue.put({KIND: ROTATE, ANGLE: degrees})
             except ValueError:
-                if colour_str.startswith('q'):
+                if degrees_str.startswith('q'):
                     break
                 else:
                     print(UNKNOWN_INPUT_MESSAGE)

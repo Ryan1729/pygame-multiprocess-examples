@@ -10,11 +10,13 @@ import queue
 import random
 import time
 
+from typing import Any, Dict
+
 DEBUG_MODE = False
 KIND = 'kind'
 NUM = 'num'
 
-def game_proc(q):
+def game_proc(q: Queue[Dict[Any, Any]]):
     PROC_NAME = "game_proc"
     FPS = 60
     QUEUE_TIMEOUT_S = 8 / 1000 # 8 milliseconds, around half a 60 FPS frame
@@ -45,41 +47,42 @@ def game_proc(q):
             if event.type == pygame.QUIT:
                 running = False
 
-        try:
-            payload = q.get(True, QUEUE_TIMEOUT_S)
-        except queue.Empty:
+        if q.empty():
             # Keep waiting for more input
             pass
-        except ValueError:
-            # Queue was closed. All done.
-            break
         else:
-            # Examine the payload and act accordingly
-            if DEBUG_MODE:
-                print(f"payload was {payload}")
-
-            if type(payload) == dict:
-                kind = payload[KIND]
-                # Check the KIND field to allow adding more commands easily in
-                # the future
-                if kind == NUM:
-                    num = payload[NUM]
-                    if type(num) == int:
-                        # Extract just the lower 3 bytes into separate colour
-                        # channels. Note that extra bits will be ignored, and
-                        # missing ones will default to 0
-                        red = (num >> 16) & 0xFF
-                        green = (num >> 8) & 0xFF
-                        blue = num & 0xFF
-                        if DEBUG_MODE:
-                            print(f"(red, green, blue): {(red, green, blue)}")
-                    else:
-                        print(f"num was {num}?!")
-                else:
-                    print(f"kind was {kind}?!")
+            try:
+                payload = q.get(True, QUEUE_TIMEOUT_S)
+            except ValueError:
+                # Queue was closed. All done.
+                break
             else:
-                print(f"payload was {payload}?!")
-            
+                # Examine the payload and act accordingly
+                if DEBUG_MODE:
+                    print(f"payload was {payload}")
+
+                if type(payload) == dict:
+                    kind = payload[KIND]
+                    # Check the KIND field to allow adding more commands easily in
+                    # the future
+                    if kind == NUM:
+                        num = payload[NUM]
+                        if type(num) == int:
+                            # Extract just the lower 3 bytes into separate colour
+                            # channels. Note that extra bits will be ignored, and
+                            # missing ones will default to 0
+                            red = (num >> 16) & 0xFF
+                            green = (num >> 8) & 0xFF
+                            blue = num & 0xFF
+                            if DEBUG_MODE:
+                                print(f"(red, green, blue): {(red, green, blue)}")
+                        else:
+                            print(f"num was {num}?!")
+                    else:
+                        print(f"kind was {kind}?!")
+                else:
+                    print(f"payload was {payload}?!")
+
 
         # fill the screen with a color to wipe away anything from last frame
         screen.fill((red, green, blue))
